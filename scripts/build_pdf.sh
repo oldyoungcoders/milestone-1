@@ -133,7 +133,7 @@ pandoc "$TMP_MD" \
     -V linkcolor=NavyBlue \
     -V urlcolor=NavyBlue \
     -V citecolor=NavyBlue \
-    -V title="Literature Review — Energy-Efficient EMPC for a SAG Grinding Circuit" \
+    -V title="Literature Review — Improved Control of SAG Mill Grinding Circuit Based on Disturbance Observer-Assisted Model Predictive Control with Two-Layer Set-Point Optimisations" \
     -V lang=en \
     --toc --toc-depth=3 \
     --output="$OUTPUT"
