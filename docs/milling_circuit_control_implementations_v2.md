@@ -207,37 +207,23 @@ This is the conceptual heart of the project. The single‑layer EMPC of §2 can 
 
 Le Roux & Craig (2019), *"A Framework for the Design of a Plant‑Wide Control System"* (`papers/plant-wide-control-framework-2019.pdf`), build the comminution‑circuit objective top‑down. Revenue is net smelter return ($\mathrm{NSR}$) minus operating cost (their Eq. 6):
 
-$$
-\text{revenue} \;=\; \mathrm{NSR} \;-\; \big(\,\text{comminution cost} + \text{separation cost}\,\big) \tag{6}
-$$
+$$\text{revenue} = \text{NSR} - (\text{comminution cost} + \text{separation cost}) \quad (6)$$
 
 The **net smelter return** depends on throughput $\mathrm{TP}$ and on product quality through $\mathrm{PSE}$ (Eq. 8), because the recovery $\Upsilon(\mathrm{PSE})$ and the concentrate grade $\gamma_C(\mathrm{PSE})$ are themselves functions of the particle‑size estimate:
 
-$$
-\begin{aligned}
-\mathrm{NSR}
-&= \Upsilon(\mathrm{PSE})\,\gamma_{\mathrm{ROM}}\,P_{v}\,\mathrm{TP}
-\;-\; \big(P_{t}+P_{p}\big)\,\Upsilon(\mathrm{PSE})\,\gamma_{C}(\mathrm{PSE})\,\gamma_{\mathrm{ROM}}\,\mathrm{TP} \\
-&= \underbrace{A(\mathrm{PSE})}_{\text{net return per tonne}}\;\cdot\;\mathrm{TP}
-\end{aligned} \tag{8}
-$$
+$$\mathrm{NSR} = \Upsilon(\mathrm{PSE})\gamma_{\mathrm{ROM}}P_v\cdot\mathrm{TP} - (P_t+P_p)\Upsilon(\mathrm{PSE})\gamma_C(\mathrm{PSE})\gamma_{\mathrm{ROM}}\cdot\mathrm{TP} = A(\mathrm{PSE})\cdot\mathrm{TP} \quad (8)$$
 
-where $P_{v}$ is the metal valuation (\$/t), $P_{t},\,P_{p}$ the transport and smelter‑processing costs (\$/t), $\gamma_{\mathrm{ROM}}$ the run‑of‑mine head grade, and $\Upsilon$ the recovery — all $\mathrm{PSE}$‑dependent price/recovery terms collapsing into a single net price per tonne $A(\mathrm{PSE})$ (\$/t).
+where $P_v$ is the metal valuation (USD/t), $P_t, P_p$ the transport and smelter‑processing costs (USD/t), $\gamma_{\mathrm{ROM}}$ the run‑of‑mine head grade, and $\Upsilon$ the recovery. All $\mathrm{PSE}$‑dependent price/recovery terms collapse into a single **net return per tonne** $A(\mathrm{PSE})$ (USD/t) — the compact form $\mathrm{NSR} = A(\mathrm{PSE})\cdot\mathrm{TP}$ shown on the right above.
 
 The **comminution cost** is dominated by mill electricity (steel‑ball and pumping costs are minor and roughly constant), so (Eq. 10):
 
-$$
-\text{comminution cost} \;=\; P_{W}\,P_{\mathrm{mill}} \;+\; P_{s}\,\kappa_{B}
-\;\;\approx\;\; B\,P_{\mathrm{mill}} \tag{10}
-$$
+$$\text{comminution cost} = P_W\cdot P_{mill} + P_s\cdot\kappa_B \approx B\cdot P_{mill} \quad (10)$$
 
-with $P_{W}$ the electricity tariff (\$/kWh) and $P_{s}\,\kappa_{B}$ the (constant) steel‑media term.
+with $P_W$ the electricity tariff (USD/kWh) and $P_s\kappa_B$ the (constant) steel‑media term.
 
 Combining (6), (8) and (10), and dropping the constant separation/steel terms — which carry no steady‑state degree of freedom in our MV set — gives the circuit's economic objective (Eq. 11, reduced):
 
-$$
-\boxed{\,J_{\mathrm{comm}} \;=\; A(\mathrm{PSE})\,\cdot\,\mathrm{TP} \;-\; B\,P_{\mathrm{mill}}\,} \tag{11}
-$$
+$$J_{comm} = A(\mathrm{PSE})\cdot\mathrm{TP} - B\cdot P_{mill} \quad (11)$$
 
 This is exactly the stage cost ($\ell$, the `lterm`) of §2, with $\mathrm{TP} \approx \mathrm{MFS}$ at steady state.
 
