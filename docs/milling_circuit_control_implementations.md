@@ -1,4 +1,4 @@
-# Implementing and Comparing Advanced Control Systems for a Single‑Stage SAG Milling Circuit
+# Implementing and Comparing Advanced Control Systems for a SAG Milling Circuit
 
 *A step‑by‑step walkthrough of the controllers implemented in this repository, with simulation evidence.*
 
