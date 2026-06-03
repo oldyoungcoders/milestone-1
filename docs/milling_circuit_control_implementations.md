@@ -138,10 +138,6 @@ i.e. it maximizes the commercial objective `J_comm = A·TP − B·Pmill`. Becaus
 
 *Figure 2.3 — MV trajectories. The EMPC runs `MFS` (and hence `CFF`/`SFW`) higher to lift throughput.*
 
-![Throughput / MFS distribution](images/compare_const_mpc_vs_empc_N60_100h/06_4b-throughput-tp-mfs-distribution.png)
-
-*Figure 2.4 — `MFS` distribution. The EMPC's throughput re‑centres from ≈ 62.6 t/h (const‑MPC) to ≈ 74.8 t/h, driven up until the PSE floor binds — not the MV cap.*
-
 The economics over the 50 h economic window:
 
 | Metric | const‑MPC | EMPC (N = 60) | Δ |
@@ -222,13 +218,9 @@ The simulation confirms exactly this split:
 
 *Figure 3.2 — MV trajectories. Profit‑max holds `MFS` high (≈ 75 t/h); energy‑min drives `MFS` down to its lower bound (≈ 60 t/h) — the "lowest‑limited region."*
 
-![Throughput / MFS distribution](images/compare_profitmax_vs_energymin_100h/05_4-throughput-mfs-distribution.png)
-
-*Figure 3.3 — `MFS` distribution. The two objectives separate cleanly: profit‑max clusters near the upper feasible region, energy‑min pins against the lower bound.*
-
 ![Specific energy consumption](images/compare_profitmax_vs_energymin_100h/06_5-specific-energy-consumption-kwh-t.png)
 
-*Figure 3.4 — SEC (kWh/t). Note SEC is nearly identical (17.51 vs 17.47) even though absolute power and revenue differ enormously — because SEC is throughput‑normalised and **both** objectives respect the same PSE floor. The economic difference is in **how many tonnes**, not in kWh per tonne.*
+*Figure 3.3 — SEC (kWh/t). Note SEC is nearly identical (17.51 vs 17.47) even though absolute power and revenue differ enormously — because SEC is throughput‑normalised and **both** objectives respect the same PSE floor. The economic difference is in **how many tonnes**, not in kWh per tonne.*
 
 ### 3.4 Interpretation — the PSE region ties it together
 
@@ -303,29 +295,21 @@ Because the economic incentive now lives in the *target*, not in the per‑step 
 
 *Figure 4.1 — Two‑layer EMPC architecture: shared EKF/DO estimator → upper economic layer (steady‑state targets) → lower tracking MPC with Δu regularization → plant.*
 
-### 4.3 Evidence: smooth MVs, same economics
-
-![Economic accounting — identical revenue formula](images/compare_empc_2layer_vs_v2_100h/01_1-economic-accounting-identical-revenue-formula.png)
-
-*Figure 4.2 — Economic accounting. The two‑layer EMPC matches the single‑layer economics — separating the objective costs nothing in profit.*
-
-![MV distributions — where does each controller park](images/compare_empc_2layer_vs_v2_100h/05_4-mv-distributions-where-does-each-controller-pa.png)
-
-*Figure 4.3 — MV distributions. The two‑layer controller's `MFS` distribution is tight and unimodal — no bang‑bang spread between bounds.*
+### 4.3 Evidence: smoother actuation, less bang-bang chatter
 
 ![What the upper EMPC sends down: xe_ref and ue_ref](images/compare_empc_2layer_vs_v2_100h/07_5b-what-the-upper-empc-sends-down-xe-ref-and-ue.png)
 
-*Figure 4.4 — The steady‑state targets `xe_ref` / `ue_ref` the upper layer hands to the lower layer. The lower MPC tracks these, so the economic decision is decoupled from the moment‑to‑moment input.*
+*Figure 4.2 — The steady‑state targets `xe_ref` / `ue_ref` the upper layer hands to the lower layer. The lower MPC tracks these, so the economic decision is decoupled from the moment‑to‑moment input.*
 
 ![CV set-point tracking JT, SVOL, PSE](images/compare_empc_2layer_vs_v2_100h/06_5-cv-setpoint-tracking-jt-svol-pse.png)
 
-*Figure 4.5 — CV tracking. `PSE` is held at its floor and `JT`/`SVOL` within bounds while the upper layer optimises economics.*
+*Figure 4.3 — CV tracking. `PSE` is held at its floor and `JT`/`SVOL` within bounds while the upper layer optimises economics.*
 
 The 218 h four‑way notebook stress‑tests the same controllers across a `PSE` set‑point step at t = 75 h and inspects the MVs specifically for bang‑bang:
 
 ![4-way MV time series — looking for bang-bang](images/compare_4way_218h_step75/02_3-mv-time-series-looking-for-bang-bang.png)
 
-*Figure 4.6 — MV time series across the step (218 h, **step@75 h**). The two‑layer EMPC's inputs stay smooth through the transient; the σ(ΔMFS) detector confirms the chatter is suppressed here — because the post‑step `PSE` floor (0.715) binds almost throughout.*
+*Figure 4.4 — MV time series across the step (218 h, **step@75 h**). The two‑layer EMPC's inputs stay smooth through the transient; the σ(ΔMFS) detector confirms the chatter is suppressed here — because the post‑step `PSE` floor (0.715) binds almost throughout.*
 
 **Takeaway (§4):** single‑layer EMPC chatters (`bang‑bang`) wherever the economic surface goes flat (§3.5). Splitting the controller into an **economic target‑setting layer** and a **tracking layer with `Δu` regularization** preserves the economic operating point (same profit, smoother actuation) and **significantly reduces the frequency of bang‑bang incidents** — though it does not make them 100 % avoidable, as a long slack‑constraint window can still trigger an episode. **Further tuning will be explored**; the most promising levers are a longer prediction horizon, a tighter *internal* `PSE` floor (so the quality constraint stays active even when the operator floor is slack), and a stronger state‑tracking weight `Q_c`.
 
