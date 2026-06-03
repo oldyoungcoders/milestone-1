@@ -6,7 +6,7 @@
 
 ## 0. Scope and plant
 
-All controllers act on the same simulated plant: a **single‑stage closed grinding‑mill circuit** (SAG mill → sump → hydrocyclone), modelled in `do-mpc` with eight nonlinear state holdups
+All controllers act on the same simulated plant: a **closed grinding‑mill circuit** (SAG mill → sump → hydrocyclone), modelled in `do-mpc` with eight nonlinear state holdups
 
 | Group | States |
 |-------|--------|
@@ -88,7 +88,7 @@ The headline tracking metric is the **integrated absolute error of PSE after the
 
 Steady‑state tracking bias stays small for both (≲ 0.5 % of set‑point pre‑step for the MPC), but the 3×PI bias on `JT` grows to **+2.2 %** after the step while the MPC stays within ±0.4 %.
 
-### 1.3 Why the MPC needs a state estimator
+### 1.3 Comparison of state estimate vs. simulated plant true state
 
 The MPC controls on the EKF's estimate, not raw measurements, so its quality depends on how well the model predicts the plant. The notebook checks this directly:
 
@@ -154,20 +154,6 @@ The economics over the 50 h economic window:
 | `PSE` min | 0.669 | 0.620 | floor binding |
 
 Two facts matter here. First, profit rises **+19.6 %** — almost entirely from revenue (more tonnes), at a modest +10.4 % more energy *spend*. Second, and less obvious, the **specific energy falls 7.5 %** (18.94 → 17.51 kWh/t): the EMPC is not just selling more, it grinds each tonne more efficiently because it operates the mill nearer its productive sweet‑spot rather than at an arbitrary set‑point.
-
-### 2.3 What stops the EMPC — the PSE floor
-
-The notebook confirms the EMPC's throughput is limited by the **product‑quality (`PSE ≥ 0.62`) floor**, not the `MFS` MV cap (max realised `MFS` = 79.2 t/h, well below the 100 t/h hard cap). The internal‑MPC and turnpike diagnostics show the controller parking at the constraint:
-
-![Internal MPC variables and EKF estimates](images/compare_const_mpc_vs_empc_N60_100h/07_5-internal-mpc-variables-ekf-estimates-and-1-ste.png)
-
-*Figure 2.5 — Internal EMPC variables with EKF ±1σ bands. The economic optimum sits on the PSE‑floor constraint surface.*
-
-The 218 h "paper scenario" notebook reproduces the same behaviour over a longer horizon and adds a **turnpike diagnostic** (the EMPC spends most of the horizon on an economic "turnpike" arc, leaving it only near the terminal):
-
-![218h turnpike diagnostic](images/compare_mpc_const_vs_empc_const_218h/05_turnpike-diagnostic.png)
-
-*Figure 2.6 — Turnpike behaviour over 218 h: the single‑layer EMPC holds the economically optimal arc through the bulk of the horizon.*
 
 **Takeaway (§2):** putting economics in the objective turns "hold a guessed set‑point" into "find and hold the most profitable feasible operating point." Here that is **+19.6 % profit and −7.5 % specific energy**, with the throughput ceiling set by the `PSE` quality floor rather than the actuator. The natural next question — *which* economic objective should we encode — is the focus of §3.
 
@@ -481,12 +467,12 @@ Because every cell pins `MFS` and holds the `PSE` floor constant, the plant sits
 **Headline results (by section):**
 - **§1** — Replaced the three decoupled PI loops with a single **MIMO model‑based tracking MPC**, built on a fast disturbance observer (DO) and an EKF state estimator.
 - **§2** — Implemented the **economic MPC (EMPC)** — the controller finds and holds the most profitable feasible operating point, with throughput capped by the `PSE` quality floor — and studied its tuning behaviour.
-- **§3** — Explored two EMPC cost functions — profit‑maximisation and energy‑minimisation — to understand how each shapes the optimum; for the single‑stage SAG mill this showed that **minimising energy for a given throughput (`MFS` ≈ TP) and quality (`PSE`)** is the natural objective, with **SEC (energy per tonne)** the metric to compare controllers on.
+- **§3** — Explored two EMPC cost functions — profit‑maximisation and energy‑minimisation — to understand how each shapes the optimum; for the SAG mill this showed that **minimising energy for a given throughput (`MFS` ≈ TP) and quality (`PSE`)** is the natural objective, with **SEC (energy per tonne)** the metric to compare controllers on.
 - **§4** — Implemented the **two‑layer EMPC**, separating the economic cost function from a tracking‑MPC layer (with `Δu` regularisation): this removes the bang‑bang chatter while preserving the economic operating point. Moving the economic optimisation from the fast lower layer up to the slow upper layer also lets the long‑horizon EMPC solve far less often.
 - **§5** — Adding an explicit RTO layer (SSRTO or ROPA) recovers essentially the same energy benefit as a fully economic MPC; tested under the **same constraints and conditions**, SSRTO, ROPA and the EMPCs deliver comparable **SEC (energy per tonne)** at matched throughput.
 - **§6** — The MFS × PSE operating‑envelope study covered three controllers but on limited, synthetic runs, so realistic plant‑calibrated data is still needed before firm conclusions — even so, it shows that the SAG mill's operating behaviour can be summarised as an **SEC map over the PSE × MFS grid**.
 
-**Overall.** We implemented initial versions of all the control‑system structures — tracking MPC and economic MPC in both single‑ and two‑layer forms, plus the two classical RTO layers (SSRTO and ROPA). Working through them we learned the practical pros and cons of EMPC and tuned it efficiently, overcoming the **bang‑bang** failure mode through a combination of levers — chiefly a **longer prediction horizon** and **keeping the `PSE` quality constraint bound**, supported by the **two‑layer economic/tracking split**, stronger **`Δu` move‑suppression**, a slower RTO clock and a stronger state‑tracking weight (the `Δu` penalty helps but cannot fix it alone). We also experimented with **cost‑function variants** (profit‑max vs energy‑min) and showed that, at the single‑stage SAG‑mill level, the EMPC optimisation reduces to **minimising energy alone for a given throughput (`MFS` ≈ TP) and product quality (`PSE`)**. Throughout, **SEC (specific energy — energy per tonne)** is the key metric for comparing the controllers on an equal footing.
+**Overall.** We implemented initial versions of all the control‑system structures — tracking MPC and economic MPC in both single‑ and two‑layer forms, plus the two classical RTO layers (SSRTO and ROPA). Working through them we learned the practical pros and cons of EMPC and tuned it efficiently, overcoming the **bang‑bang** failure mode through a combination of levers — chiefly a **longer prediction horizon** and **keeping the `PSE` quality constraint bound**, supported by the **two‑layer economic/tracking split**, stronger **`Δu` move‑suppression**, a slower RTO clock and a stronger state‑tracking weight (the `Δu` penalty helps but cannot fix it alone). We also experimented with **cost‑function variants** (profit‑max vs energy‑min) and showed that, at the SAG‑mill level, the EMPC optimisation reduces to **minimising energy alone for a given throughput (`MFS` ≈ TP) and product quality (`PSE`)**. Throughout, **SEC (specific energy — energy per tonne)** is the key metric for comparing the controllers on an equal footing.
 
 ## Next steps (remaining work)
 
