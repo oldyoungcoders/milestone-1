@@ -79,15 +79,6 @@ Both controllers hold the three CVs at their set‑points through the realistic 
 
 *Figure 1.3 — MV trajectories. The MPC coordinates `MFS`/`CFF`/`SFW` jointly; the 3×PI loops move more reactively because each sees only its own loop error.*
 
-The headline tracking metric is the **integrated absolute error of PSE after the step**:
-
-| Controller | Post‑step PSE IAE | Relative |
-|------------|-------------------|----------|
-| 3×PI | 1.0286 | 1.00× |
-| MPC + EKF + DO | 0.7195 | **0.70× (1.43× better)** |
-
-Steady‑state tracking bias stays small for both (≲ 0.5 % of set‑point pre‑step for the MPC), but the 3×PI bias on `JT` grows to **+2.2 %** after the step while the MPC stays within ±0.4 %.
-
 ### 1.3 Comparison of state estimate vs. simulated plant true state
 
 The MPC controls on the EKF's estimate, not raw measurements, so its quality depends on how well the model predicts the plant. The notebook checks this directly:
@@ -123,6 +114,14 @@ B_NUM = 0.06 $/kWh (electricity tariff)
 ```
 
 i.e. it maximizes the commercial objective `J_comm = A·TP − B·Pmill`. Because revenue (`A`·TP) dominates the energy term (`B`·Pmill) by three orders of magnitude in `$`, the EMPC's incentive is to **push throughput up** until a constraint stops it — here, the `PSE` floor. The architecture keeps an EKF estimator (here **EKF‑only — no DO**, an 8‑state `do_mpc.estimator.EKF`) and simply swaps the tracking QP for the economic objective:
+
+**How the EMPC computes its move each 30 s tick.** One control step is a single pass of this loop (`controllers.py` → `step()`):
+
+1. **Estimate the state** — the EKF folds the new measurement into an updated estimate `x̂` (`ekf.make_step`).
+2. **Seed the optimizer** — `x̂` becomes the initial condition `x_0` of the finite‑horizon problem (`mpc.make_step(x̂)`).
+3. **Optimize** — IPOPT searches over the entire input sequence `u_0 … u_{N−1}`, using the Le Roux–Hulbert model `x_{k+1} = F(x_k, u_k)` to predict each candidate trajectory and scoring it by the economic stage cost `lterm` plus a Δu regularization term plus soft‑constraint slack penalties. The MV bounds are hard; the CV limits (`PSE` floor, `JT`/`SVOL` bands, `Pmill` ceiling) are soft — each gets a slack `ε ≥ 0` and a penalty `λ·ε` (`λ` up to 10⁵) that permits a small violation at high cost, keeping the problem feasible under disturbances.
+4. **Apply the first move** — only `u_0` is sent to the plant; `u_1 … u_{N−1}` are discarded (receding horizon).
+5. **Repeat** — next tick a fresh measurement yields a new `x̂`, and the full problem is re‑solved.
 
 ![EMPC architecture](diagrams/empc_milling_circuit.png)
 
