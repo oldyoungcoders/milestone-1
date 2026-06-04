@@ -20,7 +20,7 @@ The **manipulated variables (MV)** and **controlled variables (CV)** used throug
 | `MFS` | mill feed solids (ore feed rate, t/h) | `JT` | total mill charge filling |
 | `CFF` | cyclone feed flow | `SVOL` | sump slurry volume |
 | `SFW` | sump feed water | `PSE` | product particle‑size estimate (fraction < 75 µm) |
-| `φc` (code: `alpha_speed`) | mill speed as a **fraction of critical speed** (dimensionless, ~0.55–0.80); 2‑layer / RTO controllers only | `Pmill` | mill power draw (economic objective) |
+| `φc` (code: `alpha_speed`) | mill speed as a **fraction of critical speed** (dimensionless, 0.55–0.80) | `Pmill` | mill power draw (economic objective) |
 
 Two derived quantities drive the economics:
 
