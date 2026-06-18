@@ -262,8 +262,6 @@ Thesis writing &  &  &  & \cellcolor{ganttgreen} & \cellcolor{ganttgreen} & \cel
 \hline
 \end{tabular}
 \end{center}
-
-\noindent{\footnotesize\textit{Study commenced 1 March 2026 under a 3.5-year (42-month) scholarship. Milestone 1 (candidacy, this report) falls at month 6 on 1 September 2026, Milestone 2 (mid-candidacy review) at month 18 in September 2027, and Milestone 3 (pre-submission review) at month 39 in June 2029, three months before thesis submission and defence at month 42 in September 2029.}}
 ```
 
 ---
