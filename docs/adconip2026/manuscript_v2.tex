@@ -613,23 +613,14 @@ the ore hardness, defines the best working regions. Such maps summarise
 the dynamic model and can be used in complex plant-wide calculations.
 
 This suggests a direction for real-time optimisation practice. At the
-plant-wide level, economic calculations need to run together with
-planning and scheduling information, dynamic modelling of the entire
-plant with its many sub-modules such as the SAG mill, and profit
-optimisation. Because of that complexity, steady-state calculations are
-the more likely choice at this stage. At the circuit level, transient
-operation can be used. Plant-wide profit estimation with steady-state
-calculation and planning and scheduling constraints can produce
-requirements such as MFS and PSE. A circuit like the SAG mill then
-exploits transient states through EMPC with an energy objective. The two
-objectives are consistent. Profit optimisation at the plant level
-maximises revenue and minimises energy at the same time, and the
-circuit-level energy objective pursues that same energy goal. Other
-circuits can follow the same direction. In the end, forcing the same
-states and the same optimisation onto both levels can be bad practice.
-The classic SSRTO shows the disadvantage. It applies the steady-state
-assumption at both the upper and the lower level, so it ends up waiting
-too long for the plant to settle.
+plant-wide level, economic calculations run together with planning and
+scheduling information, and steady-state calculations are the practical
+choice. At the circuit level, transient operation can be exploited
+through EMPC with an objective consistent with the plant objective.
+Forcing the same states and the same optimisation onto both levels can
+be bad practice. It is worth remembering that the classic SSRTO applies
+the steady-state assumption at both levels and waits too long for the
+plant to settle.
 
 This study is an early stage of an ongoing research program. We kept
 its scope deliberately small so that the comparison stayed clean. All
