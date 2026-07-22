@@ -221,3 +221,13 @@ __marimo__/
 /examples/
 # pdf files
 # *.pdf
+
+# LaTeX build intermediates (the .tex source and built .pdf are tracked)
+*.aux
+*.fls
+*.fdb_latexmk
+*.out
+*.toc
+*.synctex.gz
+*.bbl
+*.blg
