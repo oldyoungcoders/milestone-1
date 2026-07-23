@@ -51,7 +51,7 @@ m.o.tade@curtin.edu.au}
 Grinding is the largest energy consumer in a mineral concentrator, so the
 choice of economic objective for a semi-autogenous grinding (SAG) mill
 controller matters both economically and structurally. This paper compares
-the two candidate objectives, profit maximisation and specific-energy
+the two candidate objectives, profit maximisation and energy
 minimisation, across three supervisory architectures on a single-stage
 SAG circuit. The architectures are a classical steady-state
 RTO over three PI loops (SSRTO+3PI, the industrial reference), a two-layer
@@ -65,7 +65,7 @@ structure with its configuration. Two results stand out. First, at a matched pro
 floor, the specific energy of all architectures and both objectives
 clusters within about two percent and follows the ore-hardness
 disturbance. A well-chosen optimisation reaches the achievable SEC, and
-that achievable SEC is set by the ore hardness and the quality floor,
+the SEC is set by the ore hardness and the quality floor,
 not by the architecture or the objective. Second, both objectives reach
 the same specific energy. Profit optimisation suits the plant-wide
 level, and energy minimisation suits the SAG mill level. Energy
@@ -109,8 +109,11 @@ The way a supervisory layer decides the economically best operating point
 spans a well-known continuum from steady-state RTO (SSRTO) to EMPC, in
 which the economic objective is folded into the regulatory controller
 itself \cite{matias2022,ellis2017}. Published EMPC studies of
-grinding circuits, however, share a design choice that this paper
-questions. Their economic objective is a plant-wide net smelter return. It
+grinding circuits, however, mostly share one design choice, although
+modified profit cost functions have also been tried \cite{thivierge2023}.
+This paper revisits that choice and benchmarks a pure energy cost
+function against it. Their economic objective is a plant-wide net
+smelter return. It
 is a revenue term built from the downstream flotation concentrate mass
 flow, its grade and the metal price, minus operating cost
 \cite{leroux2019,thivierge2023}. Embedding downstream economics in the
@@ -193,8 +196,8 @@ sump volume, product size).}
 
 \subsection{The plant-wide economic objective}
 
-The economic objective of a grinding mill is not properly defined on the
-mill alone. Following the plant-wide framework of le Roux and Craig
+The economic objective of a grinding mill extends beyond the mill
+itself. Following the plant-wide framework of le Roux and Craig
 \cite{leroux2019}, the comminution circuit's scalar economic objective is
 inherited from the larger plant:
 \begin{equation}
@@ -228,15 +231,15 @@ $-A\cdot\mathrm{TP} + B\,P_{\mathrm{mill}}$, the objective pursues two
 goals at once. It maximises revenue and minimises mill power. The energy
 half still disciplines every tonne. Section~VI shows the profit runs match
 the energy runs in specific energy. The two goals are not balanced,
-though. Revenue exceeds energy cost by about two orders of magnitude. The
+though. Revenue exceeds energy cost by more than an order of magnitude. The
 stage cost is therefore near-affine in throughput, and its optimum sits on
 a constraint boundary. The optimiser raises feed and mill speed until a
 limit stops them, and holds them there. Running the mill at maximum speed
 continuously, regardless of throughput, is neither good nor common
 practice. Liner and media wear grow steeply with speed, and the model
-carries no wear cost to push back. Profit at the mill can still be a good
-choice, for example when the mill is the plant bottleneck and every extra
-tonne has value.
+carries no wear cost to push back. Profit optimisation at the mill can
+still be a good choice, for example when the mill is the plant bottleneck
+and every extra tonne has value.
 
 Our simulations confirm this directly (Section~VI). The profit runs park
 the feed near its upper bound, the energy runs settle at the demanded
@@ -586,10 +589,10 @@ identical, the specific energy of all six combinations converges to
 within about two percent and follows the ore-hardness disturbance. With
 a well-chosen optimisation, energy minimisation or a profit objective
 that includes the energy term, the controller reaches the achievable
-SEC. That achievable SEC is directly correlated with the ore hardness.
+SEC. The SEC is directly correlated with the ore hardness.
 None of the controllers can grind below the energy the ore demands. The
-distribution of achievable SEC is therefore a property of the ore
-hardness distribution rather than of the supervisory architecture or the
+SEC distribution is therefore a property of the ore hardness
+distribution rather than of the supervisory architecture or the
 economic objective. Most published comparisons cannot observe this
 because each controller is evaluated with its own model, estimator,
 constraint set and tuning. The architectures still choose different
