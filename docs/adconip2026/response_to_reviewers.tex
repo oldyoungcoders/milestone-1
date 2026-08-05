@@ -1,0 +1,191 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\newenvironment{reviewquote}%
+  {\begin{quote}\itshape}%
+  {\end{quote}}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Response to Reviewers}\\[4pt]
+{\large Comparing One-Layer and Two-Layer Economic MPC\\
+for a SAG Milling Circuit -- AdCONIP 2026}
+\end{center}
+
+We thank both reviewers for their careful reading and constructive
+comments. Each comment is quoted in italics, followed by our response.
+All changes described below are included in the revised manuscript.
+
+\section*{Reviewer 1}
+
+\subsection*{Comment 1 -- Typo in Eq.~(2)}
+
+\begin{reviewquote}
+There is a typo in Eq.~(2).
+\end{reviewquote}
+
+\textbf{Reply.} Thank you for catching this. It is a font-substitution
+artifact in the Word version of the manuscript. The abbreviation
+``s.t.'' (subject to) in Eq.~(2) was stored as a text run inside the
+equation. The latex and the PDF files are correct. We have rewritten the
+abbreviation as roman math letters. Reviewer 2 reported the same issue
+(Minor comment 2), so both reports are resolved by this fix.
+
+\section*{Reviewer 2}
+
+\subsection*{Comment 1 -- Symbol inconsistency for mill speed}
+
+\begin{reviewquote}
+The mill speed is labelled $\omega_c$ in Fig.~1 but $\varphi_c$ in
+Section VII-A. Since $\varphi_f$ and $\varphi_c$ would then coexist
+with different meanings, this risks confusion. The variable should be
+defined once in Section II and used consistently throughout, including
+figures.
+\end{reviewquote}
+
+\textbf{Reply.} We checked Fig.~1 at full resolution: the mill speed is
+labelled $\phi_c$ there, and $\omega_c$ does not appear anywhere in the
+manuscript or its figures. The reviewer likely read a low-resolution
+rendering, where the small italic $\phi$ can be mistaken for an
+$\omega$. The underlying request is implemented together with
+Comment~2: Section~II now presents the main model equations and defines
+the raised variables at first use, $\phi_c$ (mill speed) and $\phi_f$
+(ore hardness). The reviewer's concern is on point, the two symbols are
+easy to confuse. However, we keep the $\phi$ notation of the underlying
+model literature, and all variable descriptions are included in the
+manuscript.
+
+\subsection*{Comment 2 -- Section II lacks model equations and parameter definitions}
+
+\begin{reviewquote}
+The key state equations, power-draw expression, and fines-production
+relation should be included. The parameters $\alpha_r$ and $\varphi_f$
+should be introduced here as part of the model description.
+\end{reviewquote}
+
+\textbf{Reply.} Agreed, and implemented. Section~II now presents the
+main governing equations of the model, the state balances, the breakage
+relations and the power draw, and defines the main variables at first
+use, including $\alpha_r$, $\phi_f$ and $\phi_c$. The parameters
+$\alpha_r$ and $\phi_f$ are thereby introduced before their use in
+Section~V.
+
+\subsection*{Comment 3 -- The assumption $A=\mathrm{const}$ lacks quantitative justification}
+
+\begin{reviewquote}
+The reader needs at least an order-of-magnitude estimate of how much
+$A$ varies over the PSE range used (0.65 to 0.715).
+\end{reviewquote}
+
+\textbf{Reply.} This comment is right on the spot. Historically, we
+used a step function for the PSE floor, with two constant values (0.65
+and 0.715), to test how each control system behaves when the set-point
+changes. We also did not simulate the downstream circuits, flotation
+and leaching, which are the parts that actually compute and use
+$A(\mathrm{PSE})$.
+
+In our case, however, the choice of one or two set-points does not
+change the result. The study is an apples-to-apples comparison of the
+control designs under one common protocol. As long as the closed-loop
+PSE hovers close to the active set-point, $A(\mathrm{PSE})$ can be
+treated as a constant to simplify the optimisation. Figure~\ref{fig:pse}
+shows the realised PSE of all six benchmark runs against the stepped
+floor: within each phase of the protocol the closed-loop PSE stays
+within a few hundredths of the active floor.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/pse_vs_floor_both_objectives.png}
+\caption{The v5 ore-hardness realisation (top) and the raw closed-loop
+PSE of the three architectures under the energy and the profit
+objective against the stepped product-size floor (0.65 to 0.715 at
+75~h). Within each phase the PSE hovers at the active floor, which
+justifies treating $A(\mathrm{PSE})$ as constant in the benchmark.}
+\label{fig:pse}
+\end{figure}
+
+We also recomputed SEC using only the region after the 75~h step, where
+a single floor value is active (Table~\ref{tab:sec75}). The result
+becomes stronger: the SEC values cluster even more tightly than over
+the full protocol, so the single-set-point view reinforces the paper's
+conclusion that specific energy is comparable across the
+architectures. The common upward shift of about 0.3~kWh/t reflects the
+finer grind the higher floor demands and affects every design equally,
+as Fig.~3 of the paper also shows directly.
+
+\begin{table}[H]
+\centering
+\caption{SEC of the six benchmark runs over the full post-warm-up
+window, as in Table~I of the paper, and over the single-set-point
+region after the 75~h floor step.}
+\label{tab:sec75}
+\begin{tabular}{llcc}
+\toprule
+Architecture & Objective & SEC, 50--218 h & SEC, 75--218 h \\
+ & & (kWh/t) & (kWh/t) \\
+\midrule
+1-layer EMPC & energy & 19.58 & 19.92 \\
+1-layer EMPC & profit & 19.55 & 19.93 \\
+2-layer EMPC & energy & 19.64 & 19.98 \\
+2-layer EMPC & profit & 19.31 & 19.60 \\
+SSRTO+3PI    & energy & 19.65 & 19.94 \\
+SSRTO+3PI    & profit & 19.58 & 19.90 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The reviewer's broader point stands. If absolute economic percentages
+were reported for an operating plant, the stability of $A$ over the
+realised PSE distribution would have to be established with the
+downstream circuits in the loop. That analysis is part of ongoing
+plant-calibration work, and in follow-up work we plan to simplify the
+protocol to a single set-point. Since this choice does not change our
+main conclusions, we keep the reported results over the full region,
+which keeps the tables and figures of the paper consistent.
+
+\subsection*{Minor 1 -- Supporting values for the order-of-magnitude claim in III-B}
+
+\begin{reviewquote}
+Section III-B asserts that revenue exceeds energy cost by more than an
+order of magnitude, but the supporting values ($A=71$~\$/t,
+$B=0.06$~\$/kWh) appear only in Section V. A forward reference or
+approximate magnitudes would help.
+\end{reviewquote}
+
+\textbf{Reply.} Agreed. The claim in Section III-B now carries a
+forward reference, ``Revenue exceeds energy cost by more than an order
+of magnitude (Section~V)'', pointing to Section~V where the values
+$A=71$~\$/t and $B=0.06$~\$/kWh are given.
+
+\subsection*{Minor 2 -- ``s.t.'' renders as $\sigma.\tau.$ in Eq.~(2)}
+
+\begin{reviewquote}
+In Eq.~(2), ``subject to'' appears to render as $\sigma.\tau.$ rather
+than s.t., likely due to font substitution. Please verify.
+\end{reviewquote}
+
+\textbf{Reply.} This is also the typo reported by Reviewer 1, so both
+reports are resolved by this fix.
+
+\subsection*{Minor 3 -- Hyphenation breaks produce run-together words}
+
+\begin{reviewquote}
+Hyphenation breaks produce run-together words at several points (e.g.
+``orehardness,'' ``singlestage,'' ``recedinghorizon'').
+\end{reviewquote}
+
+\textbf{Reply.} We could not find any of the run-together forms in
+either the PDF or the Word file; all compound terms are correctly
+hyphenated in both. The quoted forms are likely artifacts of joining
+line-end hyphenated words while the paper was converted or annotated
+during review.
+
+\end{document}

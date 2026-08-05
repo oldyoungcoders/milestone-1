@@ -1,6 +1,8 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
-% AdCONIP 2026 manuscript v4 - v3 minus six repeated-idea cuts:
+% AdCONIP 2026 manuscript v5 - v4 with VII.A rewritten (overlap trims vs
+% Conclusions: full-speed tail removed, interface paragraph tightened).
+% v4 history: v3 minus six repeated-idea cuts:
 % (1) III.B forward-summary paragraph, (2) CPU numbers in Section IV
 % (VII.C owns them; VI.D cross-ref repointed), (3) Section IV ranking
 % verdict paragraph, (4) VII.C internal repeats (SSRTO cadence, ten-minute
@@ -131,10 +133,9 @@ grinding circuits, however, mostly share one design choice, although
 modified profit cost functions have also been tried \cite{thivierge2023}.
 This paper revisits that choice and benchmarks a pure energy cost
 function against it. Their economic objective is a plant-wide net
-smelter return. It
-is a revenue term built from the downstream flotation concentrate mass
-flow, its grade and the metal price, minus operating cost
-\cite{leroux2019,thivierge2023}. Embedding downstream economics in the
+smelter return, a revenue term built from the downstream flotation
+concentrate mass flow, its grade and the metal price, minus operating
+cost \cite{leroux2019,thivierge2023}. Embedding downstream economics in the
 mill controller couples it to a calibrated flotation model, a specific ore
 body and a specific market state. The controller must then be
 re-identified whenever any of these change \cite{mittermaier2025}. In the most directly comparable study
@@ -154,10 +155,9 @@ downstream economics and makes it portable across ore bodies and plants.
 Second, we report a like-for-like simulation benchmark of the supervisory
 continuum. All architectures run on a common reduced-order plant, under a
 common transient scenario, with common tuning. They can therefore be
-compared fairly on the metric that matters, specific energy. The results
-are preliminary and obtained on a synthetic plant. The value here is the
-fair comparison and the modular formulation, not a plant-certified
-saving.
+compared fairly on the metric that matters, specific energy. The value
+here is the fair comparison and the modular formulation, not a
+plant-certified saving.
 
 % =====================================================================
 \section{Circuit and Reduced-Order Model}
@@ -165,30 +165,63 @@ saving.
 
 All controllers act on the same simulated plant. It is a single-stage
 closed grinding circuit consisting of a SAG mill, a sump, and a
-hydrocyclone (Fig.~\ref{fig:circuit}). The plant dynamics follow the reduced-order,
-control-oriented Hulbert model, in the single-stage SAG configuration
-analysed and validated by le Roux and co-authors \cite{leroux2013}. The
+hydrocyclone (Fig.~\ref{fig:circuit}). The plant dynamics follow the
+reduced-order, control-oriented Hulbert model in its single-stage SAG
+configuration \cite{leroux2013}. The
 model lumps the size structure of the charge into rocks, solids and fines
-and adds water and ball hold-ups. This gives eight nonlinear states. Five
-sit in the mill (water, solids, fines, rocks and balls) and three in the
-sump (water, solids and fines).
+and adds water and ball hold-ups. This gives eight nonlinear states.
 
 The manipulated variables (MVs) are the mill feed solids MFS (t/h), the
-cyclone feed flow CFF, the sump feed water SFW, and the fractional mill
-speed. Mill speed is a manipulated variable rather than a fixed parameter,
-giving the optimiser a fourth degree of freedom. The controlled variables (CVs) are the mill charge
+cyclone feed flow CFF, the sump feed water SFW, and the mill speed
+$\phi_c$, the fraction of critical speed. Mill speed is a manipulated
+variable, giving the optimiser a fourth degree of freedom. The controlled variables (CVs) are the mill charge
 filling JT, the sump slurry volume SVOL, and the product particle-size
 estimate PSE. PSE is the fraction of cyclone-overflow product finer
-than 75 microns. Mill power draw is a monitored output with a parabolic dependence
-on charge and rheology. Grinding is power-driven in this model. Fines
-production is proportional to mill power through a specific-energy
-parameter. That parameter is exactly the physical lever an
-energy-minimising objective trades against product fineness.
+than 75 microns.
 
-The model is credible as a control testbed. It was fitted and validated
-on a real single-stage plant \cite{leroux2013}, has been dynamically
-validated against industrial step-test data \cite{leroux2022}, and is a
-de facto standard testbed in the milling control literature.
+The governing equations follow the single-stage form of
+\cite{leroux2013}. Population volume balances describe the mill hold-ups
+of water, solids, rocks and fines (m$^3$):
+\begin{align}
+\dot X_{mw} &= \mathrm{MIW} + V_{cwu} - V_{mwo},\label{eq:mw}\\
+\dot X_{ms} &= (1-\alpha_r)\,\mathrm{MFS}/D_S + V_{csu} - V_{mso} + \mathrm{RC},\label{eq:ms}\\
+\dot X_{mr} &= \alpha_r\,\mathrm{MFS}/D_S - \mathrm{RC},\label{eq:mr}\\
+\dot X_{mf} &= \alpha_f\,\mathrm{MFS}/D_S + V_{cfu} - V_{mfo} + \mathrm{FP},\label{eq:mf}
+\end{align}
+where MIW is the mill inlet water, $D_S$ the feed-ore density, and the
+$V$ terms are the discharge and cyclone-underflow flows. Three analogous
+balances govern the sump, and a fifth mill state tracks the ball
+hold-up. The feed splits by two ore parameters: $\alpha_r$ is the rock
+fraction of the feed and $\alpha_f$ its fines fraction. Breakage is
+driven by mill power:
+\begin{align}
+\mathrm{RC} &= \frac{P_{mill}\,\varphi}{D_S\,\phi_r}\cdot
+\frac{X_{mr}}{X_{mr}+X_{ms}},\label{eq:rc}\\
+\mathrm{FP} &= \frac{P_{mill}}
+{D_S\,\phi_f\bigl[1+\alpha_{\phi_f}(\mathrm{LOAD}/v_{mill}-v_{P_{max}})\bigr]},\label{eq:fp}
+\end{align}
+where $\varphi$ is an empirical slurry-rheology factor and LOAD the
+total charge volume in the mill volume $v_{mill}$. The two ore-hardness
+parameters sit here. $\phi_r$ (kWh/t) is the energy required per tonne
+of rocks broken. $\phi_f$ (kWh/t) is the power needed per tonne of
+fines produced, with $\alpha_{\phi_f}$ a small filling correction. Mill
+power draw is parabolic in the charge and the rheology and scales with
+the mill speed \cite{leroux2013,leroux2022}:
+\begin{equation}
+P_{mill} = P_{max}\bigl(1-\delta_{Pv}Z_x^{2}-\delta_{Ps}Z_r^{2}\bigr)\,\phi_c,
+\label{eq:pmill}
+\end{equation}
+where $Z_x$ measures the charge against the filling at maximum power,
+$Z_r$ measures the rheology factor against its value at maximum power,
+and the cross term and speed exponent of \cite{leroux2013} are at their
+default values. In the benchmark, all other model parameters are held
+constant. The parameters $\alpha_r$ and $\phi_f$ are the main varying
+parameters, representing the varying ore disturbance (Section~V).
+
+The model was fitted and validated on a real single-stage plant
+\cite{leroux2013}, has been dynamically validated against industrial
+step-test data \cite{leroux2022}, and is a de facto standard testbed in
+the milling control literature.
 
 Every controller in this study estimates the plant state with the same
 augmented extended Kalman filter (EKF). It estimates the eight hold-up
@@ -225,16 +258,13 @@ J_{\mathrm{comm}} = A(\mathrm{PSE})\,\mathrm{TP} - B\,P_{\mathrm{mill}},
 where TP is throughput, $P_{\mathrm{mill}}$ is mill power, and $B$ is
 the effective energy-plus-media price in dollars per kWh. The term
 $A(\mathrm{PSE})$ is a net return per tonne. It folds in the flotation
-recovery and the concentrate grade, both empirical functions of PSE. This objective has a real
-optimum inside the operating range, not on a limit. Feeding more tonnes
-makes the grind coarser, and a coarser product returns less per tonne
-through recovery and grade. Beyond some point, the extra tonnes are worth
-less than the value lost on every tonne. The plant-wide layer maximises
-this objective on a slow, event-triggered cadence and hands the
-comminution circuit a desired product size and a desired throughput
-\cite{leroux2019}. In this study we take $A$ as a constant to simplify
-the calculation. The PSE-dependent part of $A$ is a second-order effect
-over the narrow PSE band the quality floor allows.
+recovery and the concentrate grade, both empirical functions of PSE.
+The plant-wide layer maximises this objective for the whole plant and
+hands the comminution circuit a desired throughput. The desired product
+size comes from the downstream flotation requirement \cite{leroux2019}.
+In this study we take $A$ as a constant to simplify the calculation.
+The PSE-dependent part of $A$ is a second-order effect over the narrow
+PSE band the quality floor allows.
 
 The key observation is that this interface, a product-size floor and a
 throughput demand, is exactly what a mill-level controller needs as its
@@ -245,17 +275,18 @@ constraints.
 If the revenue term is instead placed directly in a mill controller, as
 $-A\cdot\mathrm{TP} + B\,P_{\mathrm{mill}}$, the objective pursues two
 goals at once. It maximises revenue and minimises mill power. The energy
-half still disciplines every tonne. Section~VI shows the profit runs match
-the energy runs in specific energy. The two goals are not balanced,
-though. Revenue exceeds energy cost by more than an order of magnitude. The
+half still disciplines every tonne. The two goals are not balanced,
+though. Revenue exceeds energy cost by more than an order of magnitude
+(Section~V). The
 stage cost is therefore near-affine in throughput, and its optimum sits on
 a constraint boundary. The optimiser raises feed and mill speed until a
 limit stops them, and holds them there. Running the mill at maximum speed
 continuously, regardless of throughput, is neither good nor common
-practice. Liner and media wear grow steeply with speed, and the model
-carries no wear cost to push back. Profit optimisation at the mill can
-still be a good choice, for example when the mill is the plant bottleneck
-and every extra tonne has value.
+practice.
+
+Our simulations confirm this directly (Section~VI). The profit runs park
+the feed near its upper bound, the energy runs settle at the demanded
+floor, and their specific energies are essentially identical.
 
 \subsection{The modular energy-minimising objective}
 
@@ -264,21 +295,20 @@ The plant-wide layer sets the product-size floor and the throughput
 demand. The mill controller minimises mill energy for those targets:
 \begin{equation}
 \min \; B\,P_{\mathrm{mill}}
-\quad \text{s.t.}\;\; \mathrm{PSE}\ge \mathrm{PSE}_{\min},\;
+\quad \mathrm{s.t.}\;\; \mathrm{PSE}\ge \mathrm{PSE}_{\min},\;
 \mathrm{MFS}\ge \mathrm{TP}_{\mathrm{dem}},
 \label{eq:sec}
 \end{equation}
 together with the safety envelope on charge, sump volume and power. The
 feed settles at the demand floor, so minimising
 $P_{\mathrm{mill}}$ is equivalent to minimising
-$\mathrm{SEC}=P_{\mathrm{mill}}/\mathrm{MFS}$. SEC itself is the
+$\mathrm{SEC}=P_{\mathrm{mill}}/\mathrm{MFS}$. SEC is the
 reported metric, computed as total energy over total tonnes and suitable
 for comparison.
 
 One caveat carries over from the affine structure. When the quality floor
 is already satisfied, energy cost is nearly flat in feed. With no clear
-optimum, the controller swings between its actuator bounds. Move
-suppression alone only damps it. The cure is a longer prediction horizon
+optimum, the controller swings between its actuator bounds. The cure is a longer prediction horizon
 and keeping the quality constraint binding. The two-layer architecture of
 the next section is built to do exactly that.
 
@@ -312,12 +342,10 @@ the economics are re-optimised every 30 s. This is the most
 responsive formulation, but it is prone to occasional bang-bang
 actuation (Sections III, VI).
 
-We also studied basic regulatory control, a tracking single-layer MPC
-and a decentralised 3PI system holding fixed set-points with no economic
-optimisation layer. We excluded them from the benchmark.
-They contain no economic optimisation, so mixing them into the results
-would confuse the apples-to-apples comparison between the optimising
-architectures.
+Basic regulatory variants, a tracking
+single-layer MPC and a decentralised 3PI holding fixed set-points, were
+also studied and excluded from the benchmark. They contain no economic
+optimisation to compare.
 
 \begin{figure}[t]
 \centering
@@ -342,8 +370,7 @@ noise is a per-channel ladder calibrated to plant instrument noise, from
 bands of 15 percent ($\alpha_r$) and 10 percent ($\phi_f$) around
 nominal. At 75 h the product-size floor steps up by ten percent (0.65 to
 0.715). The ore-hardness realisation, shown in the upper panels of
-Fig.~\ref{fig:oresec}, drives the rock-fraction parameter $\alpha_r$ and
-the feed-size parameter $\phi_f$ through triangle-wave trends with two
+Fig.~\ref{fig:oresec}, follows triangle-wave trends with two
 extended joint holds. The identical realisation is replayed to every
 controller, so differences downstream are attributable to the
 architecture and objective alone.
@@ -351,9 +378,8 @@ architecture and objective alone.
 \textbf{Matched constraint set.} All six runs share one operating
 envelope. It includes the feed-demand floor, the mill-filling and
 sump-volume bands, a power ceiling, and, critically, the same
-product-size floor of 0.65 stepping to 0.715. Every run logs its complete effective
-configuration at start-up, and the floors and limits are verified
-identical across all packages before any comparison is drawn.
+stepped product-size floor. The floors and limits are verified identical across all
+packages.
 
 \textbf{Objectives and economics.} The energy objective minimises
 $B\,P_{\mathrm{mill}}$ at the demanded throughput. The profit objective
@@ -525,51 +551,45 @@ result and with recent industrial experience \cite{costa2025}.
 The results give an operational answer to the objective question. Profit
 optimisation is the natural plant-wide objective. Only at that level do
 the downstream circuits (flotation recovery, concentrate value, market
-prices) enter, and only there does Eq.~(\ref{eq:jcomm}) have its interior
-optimum. At the SAG level the same objective reduces to feed-and-speed
-saturation, a standing choice that removes every degree of freedom that
+prices) enter. At the SAG level the same objective reduces to
+feed-and-speed saturation, which removes every degree of freedom that
 could otherwise be used for efficiency or robustness. Energy
 minimisation, by contrast, is well posed at the mill. It has a defined
-task, to grind the demanded tonnes to the demanded fineness for the least
-energy. As Section~VI shows, it concedes nothing in specific energy
-relative to the profit objective.
+task, to grind the demanded tonnes to the demanded fineness for the
+least energy. As Section~VI shows, it concedes nothing in specific
+energy relative to the profit objective.
 
 Once quality is pinned, the achievable specific energy is set by the
-ore. The remaining economic decision is how many tonnes to process.
-That decision belongs to the plant-wide layer. The two levels meet at a
-two-number interface. It consists of a
-throughput demand $\mathrm{TP}_{\mathrm{dem}}$ (a floor on MFS) and a
-product-size floor $\mathrm{PSE}_{\min}$. The plant-wide profit
-optimisation, which sees all circuits, decides the most profitable
-throughput and hands it down. The downstream circuits' requirements set
-the product-size floor. Inside those limits the mill runs autonomously
-and never needs to maximise MFS directly. The demand floor already
-encodes how many tonnes the plant wants. Re-targeting the mill is a
-change of two numbers rather than a re-identification.
+ore. The remaining economic decision is how many tonnes to process, and
+that decision belongs to the plant-wide layer. The two levels meet at a
+two-number interface. The plant-wide profit optimisation, which sees
+all circuits, decides the throughput demand
+$\mathrm{TP}_{\mathrm{dem}}$, a floor on MFS. The downstream circuits'
+requirements set the product-size floor $\mathrm{PSE}_{\min}$. Inside
+those limits the mill runs autonomously and never needs to maximise MFS
+directly. Re-targeting the mill is a change of two numbers rather than
+a re-identification.
 
 The interface also carries a safety and flexibility argument. The mill
 works around the lower and safer limits rather than pushing to a
 maximum. The operator or the plant-wide layer can therefore derate it
 through the same knobs. Examples are capping MFS during downstream
-maintenance or during an electrical demand event.
-The controller then simply optimises energy inside the tighter envelope.
-A profit-maximising mill instead works at full speed. The mill speed
-$\phi_c$ reaches its maximum and stays there, which is not a safe
-condition for continuous operation.
+maintenance or during an electrical demand event. The controller then
+simply optimises energy inside the tighter envelope.
+A profit-maximising mill leaves no such
+flexibility. It holds the mill speed $\phi_c$ at its maximum, which is
+not a safe condition for continuous operation.
 
 \subsection{Two-layer EMPC as the practical embodiment}
 
-The two-layer EMPC splits the mill controller itself into two
-timescales. The slow upper layer solves the economic problem inside the
-interface limits. The fast lower layer tracks it. Our benchmark indicates
+The two-layer EMPC splits the mill controller into two timescales. The
+slow upper layer solves the economic problem inside the interface
+limits, and the fast lower layer tracks it. Our benchmark indicates
 this costs nothing measurable in specific energy relative to the
-single-layer ideal. It removes the bang-bang failure mode, reduces
-computation by about a third, and retains transient responsiveness that
-the classical SSRTO reference lacks. The SSRTO remains attractive for its
-negligible computational cost. However, its quality tracking between
-steady-state updates is loose. This makes it the weakest of the three
-at holding the interface contract that the modular separation depends
-on.
+single-layer ideal. It removes the bang-bang failure mode and retains
+transient responsiveness that the classical SSRTO reference lacks. The
+SSRTO's quality tracking between steady-state updates, however, is
+loose.
 
 \subsection{Computational challenge and load comparison}
 
@@ -582,7 +602,7 @@ minutes and leaves a cheap tracking problem at the fast clock.
 The computational loads themselves separate the architectures clearly.
 The 218 h protocol has 26\,160 control intervals of 30 s. The
 single-layer EMPC re-solves the full economic problem at every
-interval. It spent about 5.5 hours of wall-clock time in its solver.
+interval. It spent about 5.5 hours in its solver.
 The two-layer spent about 3.7 hours. Its economic solve uses a longer
 prediction horizon, 4 h against the
 single-layer's 30 minutes. The longer horizon is also one way to
@@ -590,11 +610,10 @@ reduce the well-documented bang-bang issue
 \cite{thivierge2023,ellis2017} (Section III). The SSRTO solves for a
 single steady-state operating point, with no prediction horizon, and
 only when steady state is detected. It
-spent about five minutes in total, two orders of magnitude less. All three are fast enough for real time on
-an ordinary desktop computer. Even the slowest one needs less than one
-second of the 30 s between decisions. The architectures that compute
-less can spend the saving on a longer horizon, a more detailed model,
-or cheaper hardware.
+spent about five minutes in total, two orders of magnitude less. All
+three are fast enough for real time on an ordinary desktop computer,
+the slowest needing less than one second of the 30 s between
+decisions.
 
 % =====================================================================
 \section{Conclusions}
@@ -643,12 +662,9 @@ the steady-state assumption at both levels and waits too long for the
 plant to settle.
 
 This study is an early stage of an ongoing research program. We kept
-its scope deliberately small so that the comparison stayed clean. All
-runs use one synthetic ore realisation, a single 218 h protocol, and
-fixed plant and economic parameters. Only the two ore hardness
-parameters vary. Slowly varying effects such as liner wear are left
-for future work. Efforts to obtain representative plant data are
-ongoing. The next steps are to calibrate the model against historical
+its scope deliberately small so that the comparison stayed clean.
+Slowly varying effects such as liner wear are left for future work.
+The next steps are to calibrate the model against historical
 operating data and to run longer, more varied scenarios so the
 architectures can be separated with statistical confidence.
 
